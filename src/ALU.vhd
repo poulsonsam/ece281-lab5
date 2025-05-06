@@ -121,10 +121,10 @@ begin
     );
 
 --mux
-w_result <= w_sum when (i_op(1) = '0' and i_op(2) = '0') or (i_op(1) = '0' and i_op(2) = '1') else
-            w_and when (i_op(1) = '1' and i_op(2) = '0') else
-            w_or when (i_op(1) = '1' and i_op(2) = '1') else
-            x"00";
+w_result <= w_sum when (i_op="000") or (i_op="001") else
+            w_and when (i_op = "010") else
+            w_or when (i_op = "011") else
+            x"27";
 o_result <= w_result;
             
             
