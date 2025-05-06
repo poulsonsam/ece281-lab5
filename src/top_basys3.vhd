@@ -210,8 +210,8 @@ sevenseg_decoder_inst : sevenseg_decoder
         w_result when w_cycle ="1000" else
         x"00";
         
-    seg <=  "01111111" when w_sign = '1' else
-            "11111111" when w_sign = '0' else
+    seg <=  "0111111" when w_sign = '1' else
+            "1111111" when w_sign = '0' else
             w_muxRed;
             
     led(3 downto 0)<= w_cycle;
