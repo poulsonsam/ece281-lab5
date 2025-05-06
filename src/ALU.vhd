@@ -36,7 +36,6 @@ entity ALU is
            i_B : in STD_LOGIC_VECTOR (7 downto 0);
            i_op : in STD_LOGIC_VECTOR (2 downto 0);
            o_result : out STD_LOGIC_VECTOR (7 downto 0);
-           Y : out std_logic_vector ( 1 downto 0);
            o_flags : out STD_LOGIC_VECTOR (3 downto 0));
            
 end ALU;
@@ -62,16 +61,37 @@ architecture Behavioral of ALU is
     signal w_and : std_logic_vector (7 downto 0);
     signal w_lilmux : std_logic_vector (7 downto 0);
     signal w_carry_final : std_logic;
+    signal w_flags : std_logic_vector(4 downto 0);
     
 begin
     ---o_flag output
-   o_flags(0) <= (not(i_op(0) XOR i_A(7) XOR i_B(7))) and (not i_op(1)) and (i_A(7) XOR w_sum(7));
+--   w_flags(0) <= (not(i_op(0) XOR i_A(7) XOR i_B(7)));
+--   w_flags(1) <= (not i_op(1));
+--   w_flags(2) <= (i_A(7) XOR w_sum(7));
+--   o_flags(0) <= w_flags(0) and w_flags(1) and w_flags(2);
+--   --(not(i_op(0) XOR i_A(7) XOR i_B(7))) and (not i_op(1)) and (i_A(7) XOR w_sum(7));
+--   --Carry output
+--   w_flags(3) <= not i_op(1);
+--  o_flags(1) <= w_flags(3) and w_carry_final;
+--  --Negative
+--  o_flags(2) <= w_result(7);
+--  --o_flags(2) <= w_flags(4);
+--  --Zero
+--  o_flags(3) <= '1' when w_result = "00000000" else '0';
+
+  w_flags(0) <= (not(i_op(0) XOR i_A(7) XOR i_B(7)));
+   w_flags(1) <= (not i_op(1));
+   w_flags(2) <= (i_A(7) XOR w_sum(7));
+   o_flags(0) <= w_flags(0) and w_flags(1) and w_flags(2);
+   --(not(i_op(0) XOR i_A(7) XOR i_B(7))) and (not i_op(1)) and (i_A(7) XOR w_sum(7));
    --Carry output
-  o_flags(1) <= (not i_op(1)) and w_carry_final;
+   w_flags(3) <= not i_op(1);
+  o_flags(1) <= w_flags(3) and w_carry_final;
   --Negative
-  o_flags(2) <= w_result(7); ---what is different between sum and result not sure what to use
+  o_flags(3) <= w_result(7);
+  --o_flags(2) <= w_flags(4);
   --Zero
-  o_flags(3) <= '1' when w_result = "00000000" else '0';
+  o_flags(2) <= '1' when w_result = "00000000" else '0';
    --but why and gate if only one input?
    
    
@@ -85,26 +105,28 @@ begin
      ripple_adder_0: ripple_adder
     port map(
         A     => i_A(3 downto 0),
-        B     => i_B(3 downto 0),
+        B     => w_lilmux(3 downto 0),
         Cin   => i_op(0),   -- Directly to input here
         S     => w_sum(3 downto 0),
         Cout  => w_carry
     );
 
-    full_adder_1: ripple_adder
+    ripple_adder_1: ripple_adder
     port map(
         A     => i_A(7 downto 4),
-        B     => i_B(7 downto 4),
+        B     => w_lilmux(7 downto 4),
         Cin   => w_carry,
         S     => w_sum(7 downto 4),
         Cout  => w_carry_final
     );
 
 --mux
-o_result <= w_sum when (i_op(1) = '0' and i_op(2) = '0') or (i_op(1) = '0' and i_op(2) = '1') else
+w_result <= w_sum when (i_op(1) = '0' and i_op(2) = '0') or (i_op(1) = '0' and i_op(2) = '1') else
             w_and when (i_op(1) = '1' and i_op(2) = '0') else
             w_or when (i_op(1) = '1' and i_op(2) = '1') else
             x"00";
+o_result <= w_result;
+            
             
  w_lilmux <= i_B when (i_op(0) = '0') else
              not i_B;
