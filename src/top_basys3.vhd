@@ -118,8 +118,15 @@ component TDM4 is
     signal w_bin: std_logic_vector(7 downto 0);
     signal w_sel : std_logic_vector(6 downto 0);
     signal w_ALU : std_logic_vector  (7 downto 0);
+    signal w_muxRed : std_logic_vector  (6 downto 0);
+    signal w_sign : std_logic;
+    
+    
+    
     
 begin
+
+
 	-- PORT MAPS ----------------------------------------
 controller_fsm_inst : controller_fsm
     port map (
@@ -144,6 +151,9 @@ twos_comp_inst : twos_comp
 TDM4_inst : TDM4
 generic map (k_WIDTH => 4)
     port map (
+        i_reset => btnU,
+        i_clk => w_clk,
+        i_D3 => "0000",
         i_D2 => w_D2,
         i_D1 => w_D1,
         i_D0 => w_D0,
@@ -154,27 +164,65 @@ generic map (k_WIDTH => 4)
 sevenseg_decoder_inst : sevenseg_decoder
     port map (
         i_hex => w_data,
-        o_seg_n => w_seg
+        o_seg_n => w_muxRed
         );
         
-----Need to put in the D flip flops
-if (o_cycle(1) = "0010")then
-    sw => i_A
-    end if;
-if (o_cycle(2) = "0100") then
-    sw => i_B
-        end if;
-        ---mux
-        
+ ALU_INST : ALU 
+    port map (
+    i_op => sw(2 downto 0),
+    o_result => w_result(7 downto 0),
+    i_A => w_A,
+    i_B => w_B,
+    o_flags => led (15 downto 12)
+    );
+    
     
         
+----Need to put in the D flip flops
+--if (o_cycle(1) = "0010")then
+--    sw => i_A
+--    end if;
+--if (o_cycle(2) = "0100") then
+--    sw => i_B
+--        end if;
+        ---mux
         
         
+        
+    register_1 : process (w_cycle(1))
+    begin
+        if rising_edge (w_cycle(1)) then
+            w_A <= sw (7 downto 0);
+        end if;
+    end process register_1;
+  
+    register_2 : process (w_cycle(2))
+    begin
+        if rising_edge (w_cycle(2)) then
+            w_A <= sw (7 downto 0);
+        end if;
+    end process register_2;
+    
+          
         
     w_ALU <= w_A when w_cycle ="0010" else
         w_B when w_cycle = "0100" else
         w_result when w_cycle ="1000" else
         x"00";
+        
+    seg <=  "01111111" when w_sign = '1' else
+            "11111111" when w_sign = '0' else
+            w_muxRed;
+            
+    led(3 downto 0)<= w_cycle;
+            
+            
+            
+   
+               
+        
+        
+        
         
 	
 	
